@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date: 28.01.2024 21:05:07
+-- Create Date: 06.02.2024 21:34:59
 -- Design Name: 
--- Module Name: multi_function_barrel_shifter - Behavioral
+-- Module Name: test_bcd_inc - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -17,35 +17,55 @@
 -- Additional Comments:
 -- 
 ----------------------------------------------------------------------------------
-LIBRARY ieee;
-USE ieee.std_logic_1164.ALL;
-USE ieee.numeric_std.ALL;
 
-ENTITY bcd_inc IS
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx leaf cells in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity test_bcd_inc is
   PORT (
-    clk,rst: IN std_logic
+    clk,rst: IN std_logic;
+    output: out unsigned(11 downto 0)
     );
-END bcd_inc;
+ end test_bcd_inc;
 
-ARCHITECTURE Behavioral OF bcd_inc IS
-signal bcd_temp: std_logic_vector(11 downto 0 ):= "000000000000";
+architecture Behavioral of test_bcd_inc is
 
-BEGIN
-  PROCESS (clk,rst)
+signal cur_state,next_state: unsigned(11 downto 0 );
+
+begin
+PROCESS (clk,rst)
     BEGIN
     if rst='1' then 
-        bcd_temp <= "000000000000";
+        cur_state <= (others => '0');
     elsif rising_edge(clk) then
-        if bcd_temp="100110011001" then 
-            bcd_temp <="000000000000";
-        elsif bcd_temp(7 downto 0) = "10011001" then 
-            bcd_temp(7 downto 0) <= "00000000";
-            bcd_temp(11 downto 8) <= std_logic_vector(unsigned(bcd_temp(11 downto 8)) + 1);
-        elsif bcd_temp(3 downto 0) = "1001" then
-            bcd_temp(3 downto 0) <= "0000";
-            bcd_temp(7 downto 4) <= std_logic_vector(unsigned(bcd_temp(7 downto 4)) + 1);
-        end if;
+        cur_state <= next_state;
     end if;
 
   END PROCESS;
-END Behavioral;
+   -- counter/next_state logic
+  process(cur_state)
+  begin
+  if cur_state="100110011001" then 
+      next_state <= (others => '0');
+  elsif cur_state(7 downto 0) = "10011001" then 
+      next_state <=  (cur_state(11 downto 8) + 1) &  ("00000000") ;
+  elsif cur_state(3 downto 0) = "1001" then
+      next_state <= (cur_state(11 downto 8) ) & (cur_state(7 downto 4) + 1) & ("0000");
+  else 
+      next_state <= cur_state + 1;
+  end if; 
+  end process;
+
+-- output logic
+    output <= cur_state;
+end Behavioral;
